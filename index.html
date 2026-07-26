@@ -115,6 +115,50 @@
   }
   .notice b{color:var(--ink);}
 
+  .sync-panel{
+    margin-top:10px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .sync-status{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .sync-status.linked{color:var(--forest-deep);}
+  .sync-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:center;
+  }
+  .sync-btn{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:12.5px;
+    padding:8px 14px;
+    border-radius:8px;
+    border:1.5px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    cursor:pointer;
+  }
+  .sync-btn.ghost{
+    background:transparent;
+    color:var(--ink);
+  }
+  .sync-btn:hover{opacity:0.85;}
+  #syncCodeInput{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    padding:8px 10px;
+    border:1.5px solid var(--ink);
+    border-radius:8px;
+    background:var(--card);
+    color:var(--ink);
+    min-width:260px;
+  }
+
   .controls{
     display:flex;
     gap:12px;
@@ -345,6 +389,10 @@
     *{transition:none !important;}
   }
 </style>
+
+<!-- Firebase (para sincronizar el checklist entre tus dispositivos) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -368,6 +416,19 @@
     <div class="notice">
       <b>Catálogo completo:</b> 289 cartas en total — 207 de <b>Yuka Morii</b>,
       42 de <b>Sachiko Adachi</b>, 36 de <b>Asako Ito</b> y 4 de <b>Hizuki Misono</b>.
+    </div>
+
+    <div class="sync-panel" id="syncPanel">
+      <div class="sync-status" id="syncStatus">🔌 Sin sincronizar — se guarda solo en este navegador</div>
+      <div class="sync-actions" id="syncActionsClosed">
+        <button id="syncOpenBtn" class="sync-btn">Sincronizar entre dispositivos</button>
+      </div>
+      <div class="sync-actions" id="syncActionsOpen" style="display:none">
+        <input type="text" id="syncCodeInput" placeholder="Pegá tu código o dejalo vacío para crear uno nuevo" />
+        <button id="syncLinkBtn" class="sync-btn">Vincular</button>
+        <button id="syncGenBtn" class="sync-btn ghost">Generar código nuevo</button>
+        <button id="syncCancelBtn" class="sync-btn ghost">Cancelar</button>
+      </div>
     </div>
   </header>
 
@@ -753,6 +814,72 @@ CARDS.forEach(c => {
   c.typeColor = TYPE_COLOR[c.type] || "#a39d8a";
 });
 
+// ============================================================
+// FIREBASE — pegá acá tu firebaseConfig (Project settings > General
+// > Tus apps > </> ) para activar la sincronización entre dispositivos.
+// Mientras esto diga "TU_API_KEY", el checklist funciona igual pero
+// guardando solo en este navegador (localStorage).
+// ============================================================
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAihYQviyTky5YUEpfn0tLyYGxCKPSIBb8",
+  authDomain: "tcgartistas.firebaseapp.com",
+  projectId: "tcgartistas",
+  storageBucket: "tcgartistas.firebasestorage.app",
+  messagingSenderId: "649607715188",
+  appId: "1:649607715188:web:251328fe52711a7ba1b421"
+};
+
+const SYNC_CODE_KEY = "yukaMoriiSyncCode";
+let db = null;
+let syncCode = null;
+
+function firebaseReady(){
+  return FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== "TU_API_KEY";
+}
+
+function initFirebase(){
+  if(!firebaseReady() || typeof firebase === "undefined") return;
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    syncCode = localStorage.getItem(SYNC_CODE_KEY) || null;
+  }catch(e){ console.error("Firebase no se pudo inicializar", e); }
+}
+
+function genSyncCode(){
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let out = "";
+  for(let i=0;i<10;i++){ out += chars[Math.floor(Math.random()*chars.length)]; }
+  return out;
+}
+
+async function fetchCloudOwned(code){
+  const snap = await db.collection("checklists").doc(code).get();
+  return snap.exists ? (snap.data().owned || {}) : null;
+}
+
+async function pushCloudOwned(code, data){
+  await db.collection("checklists").doc(code).set({
+    owned: data,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+function updateSyncUI(){
+  const statusEl = document.getElementById("syncStatus");
+  if(!statusEl) return;
+  if(!firebaseReady()){
+    statusEl.textContent = "🔌 Sincronización no configurada todavía";
+    statusEl.classList.remove("linked");
+  } else if(syncCode){
+    statusEl.textContent = `☁️ Sincronizado — código: ${syncCode}`;
+    statusEl.classList.add("linked");
+  } else {
+    statusEl.textContent = "🔌 Sin sincronizar — se guarda solo en este navegador";
+    statusEl.classList.remove("linked");
+  }
+}
+
 const STORAGE_KEY = "yukaMoriiChecklist";
 let owned = {};
 let currentFilter = "all";
@@ -763,16 +890,71 @@ let currentAsc = true;
 let currentSearch = "";
 
 async function loadOwned(){
+  // localStorage: works everywhere, incluido GitHub Pages — es la fuente principal / respaldo offline.
   try{
-    const res = await window.storage.get(STORAGE_KEY, false);
-    if(res && res.value){ owned = JSON.parse(res.value); }
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ owned = JSON.parse(raw); }
   }catch(e){ owned = {}; }
+
+  // window.storage solo existe dentro del visor de Claude.ai; si está, la usamos
+  // además (por si veniás usando el artifact ahí) pero nunca es la única fuente.
+  try{
+    if(window.storage){
+      const res = await window.storage.get(STORAGE_KEY, false);
+      if(res && res.value){
+        const remote = JSON.parse(res.value);
+        owned = Object.assign({}, remote, owned);
+      }
+    }
+  }catch(e){ /* no disponible fuera de Claude.ai, ignorar */ }
+
+  // Firebase: si este dispositivo está vinculado con un código, la nube manda.
+  if(db && syncCode){
+    try{
+      const cloud = await fetchCloudOwned(syncCode);
+      if(cloud){
+        owned = cloud;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(owned));
+      } else {
+        // el código existe localmente pero todavía no hay nada en la nube: subimos lo local.
+        await pushCloudOwned(syncCode, owned);
+      }
+    }catch(e){ console.error("No se pudo leer de Firebase", e); }
+  }
 }
 
 async function saveOwned(){
   try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify(owned), false);
-  }catch(e){ console.error("No se pudo guardar", e); }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(owned));
+  }catch(e){ console.error("No se pudo guardar en localStorage", e); }
+
+  try{
+    if(window.storage){
+      await window.storage.set(STORAGE_KEY, JSON.stringify(owned), false);
+    }
+  }catch(e){ /* no disponible fuera de Claude.ai, ignorar */ }
+
+  if(db && syncCode){
+    try{ await pushCloudOwned(syncCode, owned); }
+    catch(e){ console.error("No se pudo guardar en Firebase", e); }
+  }
+}
+
+async function linkSyncCode(code){
+  syncCode = code.trim().toUpperCase();
+  localStorage.setItem(SYNC_CODE_KEY, syncCode);
+  updateSyncUI();
+  await loadOwned();
+  render();
+}
+
+async function generateAndLink(){
+  const code = genSyncCode();
+  syncCode = code;
+  localStorage.setItem(SYNC_CODE_KEY, code);
+  updateSyncUI();
+  try{ await pushCloudOwned(code, owned); }catch(e){ console.error(e); }
+  alert("Tu código de sincronización es:\n\n" + code + "\n\nAnotalo — lo necesitás para vincular tus otros dispositivos. Se guardó automáticamente en este navegador.");
 }
 
 function toggle(id){
@@ -894,8 +1076,40 @@ document.querySelectorAll(".chip-toggle button").forEach(btn => {
   });
 });
 
+document.getElementById("syncOpenBtn").addEventListener("click", () => {
+  document.getElementById("syncActionsClosed").style.display = "none";
+  document.getElementById("syncActionsOpen").style.display = "flex";
+});
+document.getElementById("syncCancelBtn").addEventListener("click", () => {
+  document.getElementById("syncActionsOpen").style.display = "none";
+  document.getElementById("syncActionsClosed").style.display = "flex";
+});
+document.getElementById("syncLinkBtn").addEventListener("click", async () => {
+  if(!firebaseReady()){
+    alert("Todavía no configuraste Firebase en el código (FIREBASE_CONFIG).");
+    return;
+  }
+  const val = document.getElementById("syncCodeInput").value.trim();
+  if(!val){ alert("Pegá un código, o usá \"Generar código nuevo\" si es la primera vez."); return; }
+  await linkSyncCode(val);
+  document.getElementById("syncActionsOpen").style.display = "none";
+  document.getElementById("syncActionsClosed").style.display = "flex";
+});
+document.getElementById("syncGenBtn").addEventListener("click", async () => {
+  if(!firebaseReady()){
+    alert("Todavía no configuraste Firebase en el código (FIREBASE_CONFIG).");
+    return;
+  }
+  await generateAndLink();
+  document.getElementById("syncActionsOpen").style.display = "none";
+  document.getElementById("syncActionsClosed").style.display = "flex";
+});
+
 (async function init(){
+  initFirebase();
+  updateSyncUI();
   await loadOwned();
+  updateSyncUI();
   render();
 })();
 </script>
