@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yuka Morii — Catálogo de cartas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #f0ecdd;
+    --paper-deep: #e8e2ca;
+    --ink: #23301f;
+    --ink-soft: #5b6650;
+    --card: #fffdf6;
+    --line: #d8d2b8;
+    --forest: #3b6e4e;
+    --forest-deep: #294f37;
+    --teal: #2e6e72;
+    --ochre: #b98b2e;
+    --plum: #6e4a63;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(35,48,31,0.06) 1px, transparent 0);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:36px 20px 80px;}
+
+  header{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:22px;
+    margin-bottom:28px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--forest-deep);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--forest);
+    display:inline-block;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(30px, 5vw, 46px);
+    line-height:1.05;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  h1 em{
+    font-style:italic;
+    color:var(--forest);
+  }
+  .sub{
+    font-size:15px;
+    color:var(--ink-soft);
+    max-width:60ch;
+    line-height:1.55;
+  }
+  .sub b{color:var(--ink);font-weight:600;}
+
+  .tally-row{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    gap:28px;
+    margin-top:6px;
+  }
+  .tally-box{
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .tally-num{
+    font-size:34px;
+    font-weight:500;
+    line-height:1;
+    color:var(--forest-deep);
+  }
+  .tally-label{
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-top:4px;
+  }
+
+  .notice{
+    margin-top:8px;
+    font-size:13px;
+    background:var(--paper-deep);
+    border:1px dashed var(--ink-soft);
+    border-radius:8px;
+    padding:10px 14px;
+    color:var(--ink-soft);
+    line-height:1.5;
+  }
+  .notice b{color:var(--ink);}
+
+  .controls{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom:22px;
+  }
+  input[type="search"]{
+    flex:1;
+    min-width:200px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14px;
+    padding:10px 14px;
+    border:1.5px solid var(--ink);
+    border-radius:8px;
+    background:var(--card);
+    color:var(--ink);
+  }
+  input[type="search"]:focus{outline:2px solid var(--forest);outline-offset:1px;}
+  select{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding:10px 10px;
+    border:1.5px solid var(--ink);
+    border-radius:8px;
+    background:var(--card);
+    color:var(--ink);
+  }
+  .dir-toggle{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding:10px 14px;
+    border:1.5px solid var(--ink);
+    border-radius:8px;
+    background:var(--card);
+    color:var(--ink);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .dir-toggle:hover{background:var(--paper-deep);}
+  .chip-toggle{
+    display:flex;
+    gap:6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+  }
+  .chip-toggle button{
+    padding:9px 13px;
+    border-radius:20px;
+    border:1.5px solid var(--ink);
+    background:transparent;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .chip-toggle button.active{
+    background:var(--ink);
+    color:var(--paper);
+  }
+
+  .type-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-bottom:18px;
+  }
+  .type-row button{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:12px;
+    padding:6px 12px;
+    border-radius:20px;
+    border:1.5px solid var(--line);
+    background:var(--card);
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:border-color .12s ease;
+  }
+  .type-row button:hover{border-color:var(--ink-soft);}
+  .type-row button.active{
+    border-color:var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+  }
+
+  .card-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:4px;
+    align-items:center;
+  }
+  .type-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9.5px;
+    letter-spacing:0.03em;
+    padding:2px 7px;
+    border-radius:20px;
+    color:#fff;
+  }
+  .year-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9.5px;
+    color:var(--ink-soft);
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(150px,1fr));
+    gap:14px;
+  }
+  .specimen{
+    background:var(--card);
+    border:1.5px solid var(--line);
+    border-radius:var(--radius);
+    padding:10px;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  .specimen:hover{border-color:var(--ink-soft);}
+  .specimen.owned{border-color:var(--forest); background:#fbfff9;}
+
+  .thumb-wrap{
+    position:relative;
+    border-radius:6px;
+    overflow:hidden;
+    background:var(--paper-deep);
+    aspect-ratio: 245 / 342;
+  }
+  .thumb-wrap img{
+    width:100%;height:100%;object-fit:cover;display:block;
+  }
+  .stamp{
+    position:absolute;
+    top:6px;right:6px;
+    width:26px;height:26px;
+    border-radius:50%;
+    border:2px solid var(--forest);
+    background:var(--forest);
+    color:var(--paper);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    font-size:15px;
+    line-height:1;
+    box-shadow:0 1px 3px rgba(0,0,0,0.25);
+    opacity:0.92;
+    transition:transform .12s ease;
+  }
+  .stamp:hover{transform:scale(1.08);}
+  .stamp.unchecked{
+    background:rgba(255,253,246,0.88);
+    color:transparent;
+  }
+  .stamp.unchecked:hover{border-color:var(--forest);}
+
+  .meta{display:flex;flex-direction:column;gap:2px;flex:1;}
+  .name{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:14.5px;
+    line-height:1.2;
+  }
+  .setline{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    color:var(--teal);
+    letter-spacing:0.02em;
+  }
+  .setfull{
+    font-size:11px;
+    color:var(--ink-soft);
+    line-height:1.3;
+  }
+  .artist-tag{
+    align-self:flex-start;
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-size:11px;
+    color:var(--forest-deep);
+    background:var(--paper-deep);
+    padding:2px 8px;
+    border-radius:4px;
+    margin-top:1px;
+  }
+  .rarity{
+    align-self:flex-start;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9.5px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    padding:2px 7px;
+    border-radius:20px;
+    border:1px solid currentColor;
+    margin-top:2px;
+  }
+  .rarity.common{color:var(--ink-soft);}
+  .rarity.uncommon{color:var(--teal);}
+  .rarity.rare{color:var(--ochre);}
+  .rarity.holo-rare{color:var(--ochre); font-weight:600;}
+  .rarity.special, .rarity.promo{color:var(--plum);}
+
+  .empty{
+    grid-column:1/-1;
+    text-align:center;
+    padding:60px 20px;
+    color:var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+  }
+
+  footer{
+    margin-top:50px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+    font-size:12px;
+    color:var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace;
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  footer a{color:var(--forest-deep);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Catálogo de coleccionista · No oficial</div>
+    <h1>Ilustradoras de <em>Pokémon</em></h1>
+    <div class="sub">
+      Lista para marcar qué cartas del TCG de Pokémon, de estas cuatro ilustradoras, ya tenés.
+      El casillero se guarda solo. Datos y arte © The Pokémon Company / Nintendo,
+      vía <b>limitlesstcg.com</b> y <b>pkmncards.com</b>.
+    </div>
+
+    <div class="tally-row">
+      <div class="tally-box">
+        <div class="tally-num" id="ownedCount">0</div>
+        <div class="tally-label">tenés / <span id="totalCount">289</span> catalogadas</div>
+      </div>
+    </div>
+
+    <div class="notice">
+      <b>Catálogo completo:</b> 289 cartas en total — 207 de <b>Yuka Morii</b>,
+      42 de <b>Sachiko Adachi</b>, 36 de <b>Asako Ito</b> y 4 de <b>Hizuki Misono</b>.
+    </div>
+  </header>
+
+  <div class="controls">
+    <input type="search" id="searchBox" placeholder="Buscar por nombre o set (ej. Rowlet, LOR)…" />
+    <select id="artistSelect">
+      <option value="all">Artista: todas</option>
+      <option value="Yuka Morii">Yuka Morii (207)</option>
+      <option value="Sachiko Adachi">Sachiko Adachi (42)</option>
+      <option value="Asako Ito">Asako Ito (36)</option>
+      <option value="Hizuki Misono">Hizuki Misono (4)</option>
+    </select>
+    <select id="sortSelect">
+      <option value="default">Orden: fecha</option>
+      <option value="name">Orden: alfabético</option>
+      <option value="year">Orden: año</option>
+      <option value="type">Orden: tipo</option>
+      <option value="set">Orden: set</option>
+      <option value="artist">Orden: artista</option>
+    </select>
+    <button id="dirToggle" class="dir-toggle" title="Cambiar dirección">↑ Ascendente</button>
+    <div class="chip-toggle">
+      <button data-filter="all" class="active">Todas</button>
+      <button data-filter="owned">Tengo</button>
+      <button data-filter="missing">Me faltan</button>
+    </div>
+  </div>
+
+  <div class="type-row" id="typeRow">
+    <button data-type="all" class="active">Todas</button>
+    <button data-type="Grass">🌿 Planta</button>
+    <button data-type="Fire">🔥 Fuego</button>
+    <button data-type="Water">💧 Agua</button>
+    <button data-type="Lightning">⚡ Rayo</button>
+    <button data-type="Psychic">🔮 Psíquica</button>
+    <button data-type="Fighting">🥊 Lucha</button>
+    <button data-type="Darkness">🌑 Oscura</button>
+    <button data-type="Metal">⚙️ Metálica</button>
+    <button data-type="Fairy">✨ Hada</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>
+    <span>289 cartas · 4 artistas · datos vía Limitless TCG y PkmnCards</span>
+    <span>Hecho para uso personal de colección</span>
+  </footer>
+
+</div>
+
+<script>
+const CARDS = [
+  {set:"PBL", full:"Pitch Black", num:"042", type:"Fighting", year:2026, name:"Mankey", rarity:"Common"},
+  {set:"PFL", full:"Phantasmal Flames", num:"009", type:"Grass", year:2025, name:"Nymble", rarity:"Common"},
+  {set:"MEG", full:"Mega Evolution", num:"052", type:"Lightning", year:2025, name:"Helioptile", rarity:"Common"},
+  {set:"BLK", full:"Black Bolt", num:"141", type:"Metal", year:2025, name:"Klinklang", rarity:"Special"},
+  {set:"WHT", full:"White Flare", num:"070", type:"Metal", year:2025, name:"Durant", rarity:"Uncommon"},
+  {set:"DRI", full:"Destined Rivals", num:"021", type:"Grass", year:2025, name:"Smoliv", rarity:"Common"},
+  {set:"JTG", full:"Journey Together", num:"009", type:"Grass", year:2025, name:"Karrablast", rarity:"Common"},
+  {set:"SSP", full:"Surging Sparks", num:"138", type:"Dragon", year:2024, name:"Applin", rarity:"Common"},
+  {set:"SCR", full:"Stellar Crown", num:"043", type:"Water", year:2024, name:"Chewtle", rarity:"Common"},
+  {set:"SCR", full:"Stellar Crown", num:"102", type:"Metal", year:2024, name:"Meltan", rarity:"Common"},
+  {set:"TWM", full:"Twilight Masquerade", num:"056", type:"Water", year:2024, name:"Froakie", rarity:"Common"},
+  {set:"TEF", full:"Temporal Forces", num:"136", type:"Colorless", year:2024, name:"Minccino", rarity:"Common"},
+  {set:"PAR", full:"Paradox Rift", num:"034", type:"Water", year:2023, name:"Octillery", rarity:"Common"},
+  {set:"PAR", full:"Paradox Rift", num:"069", type:"Lightning", year:2023, name:"Toxel", rarity:"Common"},
+  {set:"PAR", full:"Paradox Rift", num:"211", type:"Colorless", year:2023, name:"Aipom", rarity:"Special"},
+  {set:"MEW", full:"Pokémon 151", num:"081", type:"Lightning", year:2023, name:"Magnemite", rarity:"Common"},
+  {set:"MEW", full:"Pokémon 151", num:"082", type:"Lightning", year:2023, name:"Magneton", rarity:"Uncommon"},
+  {set:"OBF", full:"Obsidian Flames", num:"040", type:"Fire", year:2023, name:"Larvesta", rarity:"Common"},
+  {set:"OBF", full:"Obsidian Flames", num:"081", type:"Psychic", year:2023, name:"Clefairy", rarity:"Common"},
+  {set:"OBF", full:"Obsidian Flames", num:"097", type:"Psychic", year:2023, name:"Sinistea", rarity:"Common"},
+  {set:"OBF", full:"Obsidian Flames", num:"170", type:"Colorless", year:2023, name:"Lillipup", rarity:"Common"},
+  {set:"PAL", full:"Paldea Evolved", num:"072", type:"Lightning", year:2023, name:"Pincurchin", rarity:"Common"},
+  {set:"SVI", full:"Scarlet & Violet", num:"121", type:"Fighting", year:2023, name:"Stonjourner", rarity:"Uncommon"},
+  {set:"SVI", full:"Scarlet & Violet", num:"148", type:"Colorless", year:2023, name:"Starly", rarity:"Common"},
+  {set:"CRZ", full:"Crown Zenith", num:"092", type:"Metal", year:2023, name:"Pawniard", rarity:"Common"},
+  {set:"CRZ", full:"Crown Zenith", num:"GG49", type:"Darkness", year:2023, name:"Drapion V", rarity:"Special"},
+  {set:"SIT", full:"Silver Tempest", num:"093", type:"Fighting", year:2022, name:"Baltoy", rarity:"Common"},
+  {set:"LOR", full:"Lost Origin", num:"011", type:"Grass", year:2022, name:"Seedot", rarity:"Common"},
+  {set:"LOR", full:"Lost Origin", num:"024", type:"Fire", year:2022, name:"Litwick", rarity:"Common"},
+  {set:"LOR", full:"Lost Origin", num:"046", type:"Water", year:2022, name:"Ducklett", rarity:"Common"},
+  {set:"LOR", full:"Lost Origin", num:"086", type:"Fighting", year:2022, name:"Machop", rarity:"Common"},
+  {set:"LOR", full:"Lost Origin", num:"114", type:"Darkness", year:2022, name:"Murkrow", rarity:"Common"},
+  {set:"PGO", full:"Pokémon GO", num:"006", type:"Grass", year:2022, name:"Spinarak", rarity:"Common"},
+  {set:"ASR", full:"Astral Radiance", num:"109", type:"Metal", year:2022, name:"Shieldon", rarity:"Uncommon"},
+  {set:"BRS", full:"Brilliant Stars", num:"010", type:"Grass", year:2022, name:"Wormadam", rarity:"Rare"},
+  {set:"BRS", full:"Brilliant Stars", num:"030", type:"Water", year:2022, name:"Staryu", rarity:"Common"},
+  {set:"FST", full:"Fusion Strike", num:"084", type:"Water", year:2021, name:"Snom", rarity:"Common"},
+  {set:"FST", full:"Fusion Strike", num:"095", type:"Lightning", year:2021, name:"Tynamo", rarity:"Common"},
+  {set:"FST", full:"Fusion Strike", num:"131", type:"Fighting", year:2021, name:"Sandshrew", rarity:"Common"},
+  {set:"EVS", full:"Evolving Skies", num:"068", type:"Psychic", year:2021, name:"Woobat", rarity:"Common"},
+  {set:"EVS", full:"Evolving Skies", num:"076", type:"Psychic", year:2021, name:"Pumpkaboo", rarity:"Common"},
+  {set:"CRE", full:"Chilling Reign", num:"022", type:"Fire", year:2021, name:"Castform (Sunny Form)", rarity:"Common"},
+  {set:"CRE", full:"Chilling Reign", num:"091", type:"Fighting", year:2021, name:"Clobbopus", rarity:"Common"},
+  {set:"BST", full:"Battle Styles", num:"027", type:"Fire", year:2021, name:"Salandit", rarity:"Common"},
+  {set:"BST", full:"Battle Styles", num:"029", type:"Fire", year:2021, name:"Sizzlipede", rarity:"Common"},
+  {set:"VIV", full:"Vivid Voltage", num:"077", type:"Psychic", year:2020, name:"Dedenne", rarity:"Common"},
+  {set:"VIV", full:"Vivid Voltage", num:"091", type:"Fighting", year:2020, name:"Drilbur", rarity:"Common"},
+  {set:"VIV", full:"Vivid Voltage", num:"133", type:"Colorless", year:2020, name:"Taillow", rarity:"Common"},
+  {set:"CPA", full:"Champion's Path", num:"002", type:"Grass", year:2020, name:"Weedle", rarity:"Common"},
+  {set:"DAA", full:"Darkness Ablaze", num:"014", type:"Grass", year:2020, name:"Bounsweet", rarity:"Common"},
+  {set:"DAA", full:"Darkness Ablaze", num:"022", type:"Fire", year:2020, name:"Torchic", rarity:"Common"},
+  {set:"RCL", full:"Rebel Clash", num:"081", type:"Psychic", year:2020, name:"Sandygast", rarity:"Common"},
+  {set:"RCL", full:"Rebel Clash", num:"146", type:"Colorless", year:2020, name:"Bunnelby", rarity:"Common"},
+  {set:"SSH", full:"Sword & Shield", num:"130", type:"Metal", year:2020, name:"Ferroseed", rarity:"Common"},
+  {set:"CEC", full:"Cosmic Eclipse", num:"017", type:"Grass", year:2019, name:"Rowlet", rarity:"Common"},
+
+  // --- Sun & Moon era ---
+  {set:"CEC", full:"Cosmic Eclipse", num:"097", type:"Psychic", year:2019, name:"Mimikyu", rarity:"Rare"},
+  {set:"UNM", full:"Unified Minds", num:"015", type:"Grass", year:2019, name:"Fomantis", rarity:"Common"},
+  {set:"UNM", full:"Unified Minds", num:"111", type:"Fighting", year:2019, name:"Relicanth", rarity:"Uncommon"},
+  {set:"UNB", full:"Unbroken Bonds", num:"010", type:"Grass", year:2019, name:"Venonat", rarity:"Common"},
+  {set:"UNB", full:"Unbroken Bonds", num:"018", type:"Grass", year:2019, name:"Grubbin", rarity:"Common"},
+  {set:"UNB", full:"Unbroken Bonds", num:"023", type:"Fire", year:2019, name:"Darumaka", rarity:"Common"},
+  {set:"UNB", full:"Unbroken Bonds", num:"113", type:"Darkness", year:2019, name:"Sandile", rarity:"Common"},
+  {set:"TEU", full:"Team Up", num:"004", type:"Grass", year:2019, name:"Kakuna", rarity:"Uncommon"},
+  {set:"TEU", full:"Team Up", num:"035", type:"Lightning", year:2019, name:"Alolan Geodude", rarity:"Common"},
+  {set:"TEU", full:"Team Up", num:"047", type:"Lightning", year:2019, name:"Joltik", rarity:"Common"},
+  {set:"TEU", full:"Team Up", num:"081", type:"Fighting", year:2019, name:"Pancham", rarity:"Common"},
+  {set:"LOT", full:"Lost Thunder", num:"080", type:"Lightning", year:2018, name:"Pachirisu", rarity:"Common"},
+  {set:"LOT", full:"Lost Thunder", num:"116", type:"Fighting", year:2018, name:"Pupitar", rarity:"Uncommon"},
+  {set:"LOT", full:"Lost Thunder", num:"123", type:"Metal", year:2018, name:"Alolan Dugtrio", rarity:"Uncommon"},
+  {set:"LOT", full:"Lost Thunder", num:"139", type:"Fairy", year:2018, name:"Ralts", rarity:"Common"},
+  {set:"DRM", full:"Dragon Majesty", num:"043", type:"Dragon", year:2018, name:"Shelgon", rarity:"Uncommon"},
+  {set:"CES", full:"Celestial Storm", num:"057", type:"Psychic", year:2018, name:"Gulpin", rarity:"Common"},
+  {set:"CES", full:"Celestial Storm", num:"058", type:"Psychic", year:2018, name:"Swalot", rarity:"Uncommon"},
+  {set:"FLI", full:"Forbidden Light", num:"001", type:"Grass", year:2018, name:"Exeggcute", rarity:"Common"},
+  {set:"FLI", full:"Forbidden Light", num:"018", type:"Fire", year:2018, name:"Litleo", rarity:"Common"},
+  {set:"FLI", full:"Forbidden Light", num:"066", type:"Fighting", year:2018, name:"Binacle", rarity:"Common"},
+  {set:"CIN", full:"Crimson Invasion", num:"016", type:"Water", year:2017, name:"Starmie", rarity:"Rare"},
+  {set:"CIN", full:"Crimson Invasion", num:"051", type:"Fighting", year:2017, name:"Primeape", rarity:"Rare"},
+  {set:"GRI", full:"Guardians Rising", num:"050", type:"Psychic", year:2017, name:"Trubbish", rarity:"Common"},
+  {set:"GRI", full:"Guardians Rising", num:"052", type:"Psychic", year:2017, name:"Gothita", rarity:"Common"},
+  {set:"SUM", full:"Sun & Moon", num:"002", type:"Grass", year:2017, name:"Metapod", rarity:"Uncommon"},
+  {set:"SMP", full:"Sun & Moon Promos", num:"229", type:"Grass", year:2017, name:"Venusaur & Snivy-GX", rarity:"Promo"},
+
+  // --- XY era ---
+  {set:"STS", full:"Steam Siege", num:"012", type:"Grass", year:2016, name:"Foongus", rarity:"Common"},
+  {set:"FCO", full:"Fates Collide", num:"049", type:"Fighting", year:2016, name:"Carbink", rarity:"Rare"},
+  {set:"GEN", full:"Generations", num:"RC19", type:"Fairy", year:2016, name:"Swirlix", rarity:"Uncommon"},
+  {set:"BKP", full:"BREAKpoint", num:"072", type:"Darkness", year:2016, name:"Nuzleaf", rarity:"Uncommon"},
+  {set:"BKT", full:"BREAKthrough", num:"004", type:"Grass", year:2015, name:"Cacnea", rarity:"Common"},
+  {set:"BKT", full:"BREAKthrough", num:"098", type:"Fairy", year:2015, name:"Snubbull", rarity:"Common"},
+  {set:"AOR", full:"Ancient Origins", num:"047", type:"Metal", year:2015, name:"Beldum", rarity:"Common"},
+  {set:"ROS", full:"Roaring Skies", num:"068", type:"Colorless", year:2015, name:"Dunsparce", rarity:"Common"},
+  {set:"PRC", full:"Primal Clash", num:"087", type:"Fighting", year:2015, name:"Hippopotas", rarity:"Common"},
+  {set:"PRC", full:"Primal Clash", num:"113", type:"Colorless", year:2015, name:"Skitty", rarity:"Common"},
+
+  // --- Black & White era ---
+  {set:"LTR", full:"Legendary Treasures", num:"009", type:"Grass", year:2013, name:"Sewaddle", rarity:"Common"},
+  {set:"LTR", full:"Legendary Treasures", num:"083", type:"Fighting", year:2013, name:"Stunfisk", rarity:"Uncommon"},
+
+  // --- HeartGold & SoulSilver era ---
+  {set:"TM", full:"Triumphant", num:"015", type:"Metal", year:2010, name:"Bronzong", rarity:"Rare"},
+  {set:"TM", full:"Triumphant", num:"058", type:"Metal", year:2010, name:"Bronzor", rarity:"Common"},
+  {set:"UD", full:"Undaunted", num:"006", type:"Fire", year:2010, name:"Magcargo", rarity:"Holo Rare"},
+  {set:"UD", full:"Undaunted", num:"067", type:"Fire", year:2010, name:"Slugma", rarity:"Common"},
+  {set:"HS", full:"HeartGold & SoulSilver", num:"013", type:"Psychic", year:2010, name:"Wobbuffet", rarity:"Holo Rare"},
+  {set:"HS", full:"HeartGold & SoulSilver", num:"025", type:"Grass", year:2010, name:"Ledian", rarity:"Rare"},
+  {set:"HS", full:"HeartGold & SoulSilver", num:"031", type:"Grass", year:2010, name:"Sunflora", rarity:"Rare"},
+  {set:"HS", full:"HeartGold & SoulSilver", num:"071", type:"Grass", year:2010, name:"Ledyba", rarity:"Common"},
+  {set:"HS", full:"HeartGold & SoulSilver", num:"085", type:"Grass", year:2010, name:"Sunkern", rarity:"Common"},
+
+  // --- Diamond & Pearl / Platinum era ---
+  {set:"AR", full:"Arceus", num:"60", type:"Grass", year:2009, name:"Cherubi", rarity:"Common", img:"https://images.pokemontcg.io/pl4/60_hires.png"},
+  {set:"AR", full:"Arceus", num:"75", type:"Water", year:2009, name:"Snorunt", rarity:"Common", img:"https://images.pokemontcg.io/pl4/75_hires.png"},
+  {set:"SV", full:"Supreme Victors", num:"71", type:"Lightning", year:2009, name:"Minun", rarity:"Uncommon", img:"https://images.pokemontcg.io/pl3/71_hires.png"},
+  {set:"SV", full:"Supreme Victors", num:"76", type:"Lightning", year:2009, name:"Plusle", rarity:"Uncommon", img:"https://images.pokemontcg.io/pl3/76_hires.png"},
+  {set:"SV", full:"Supreme Victors", num:"127", type:"Grass", year:2009, name:"Shroomish", rarity:"Common", img:"https://images.pokemontcg.io/pl3/127_hires.png"},
+  {set:"SV", full:"Supreme Victors", num:"132", type:"Colorless", year:2009, name:"Whismur", rarity:"Common", img:"https://images.pokemontcg.io/pl3/132_hires.png"},
+  {set:"PL", full:"Platinum", num:"80", type:"Colorless", year:2009, name:"Lickitung", rarity:"Common", img:"https://images.pokemontcg.io/pl1/80_hires.png"},
+  {set:"PL", full:"Platinum", num:"82", type:"Lightning", year:2009, name:"Mareep", rarity:"Common", img:"https://images.pokemontcg.io/pl1/82_hires.png"},
+  {set:"PL", full:"Platinum", num:"103", type:"Grass", year:2009, name:"Wurmple", rarity:"Common", img:"https://images.pokemontcg.io/pl1/103_hires.png"},
+  {set:"SF", full:"Stormfront", num:"33", type:"Psychic", year:2008, name:"Budew", rarity:"Uncommon", img:"https://images.pokemontcg.io/dp7/33_hires.png"},
+  {set:"SF", full:"Stormfront", num:"54", type:"Colorless", year:2008, name:"Bidoof", rarity:"Common", img:"https://images.pokemontcg.io/dp7/54_hires.png"},
+  {set:"SF", full:"Stormfront", num:"63", type:"Fighting", year:2008, name:"Larvitar", rarity:"Common", img:"https://images.pokemontcg.io/dp7/63_hires.png"},
+  {set:"P8", full:"POP Series 8", num:"14", type:"Colorless", year:2008, name:"Happiny", rarity:"Common", img:"https://images.pokemontcg.io/pop8/14_hires.png"},
+  {set:"MT", full:"Mysterious Treasures", num:"52", type:"Colorless", year:2007, name:"Happiny", rarity:"Uncommon", img:"https://images.pokemontcg.io/dp2/52_hires.png"},
+  {set:"MT", full:"Mysterious Treasures", num:"71", type:"Metal", year:2007, name:"Aron", rarity:"Common", img:"https://images.pokemontcg.io/dp2/71_hires.png"},
+  {set:"MT", full:"Mysterious Treasures", num:"93", type:"Lightning", year:2007, name:"Pichu", rarity:"Common", img:"https://images.pokemontcg.io/dp2/93_hires.png"},
+  {set:"MT", full:"Mysterious Treasures", num:"99", type:"Colorless", year:2007, name:"Slakoth", rarity:"Common", img:"https://images.pokemontcg.io/dp2/99_hires.png"},
+  {set:"MT", full:"Mysterious Treasures", num:"105", type:"Colorless", year:2007, name:"Teddiursa", rarity:"Common", img:"https://images.pokemontcg.io/dp2/105_hires.png"},
+
+  // --- EX era ---
+  {set:"DF", full:"Dragon Frontiers", num:"27", type:"Lightning", year:2006, name:"Croconaw", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex15/27_hires.png"},
+  {set:"DF", full:"Dragon Frontiers", num:"30", type:"Colorless", year:2006, name:"Flaaffy", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex15/30_hires.png"},
+  {set:"DF", full:"Dragon Frontiers", num:"44", type:"Fighting", year:2006, name:"Chikorita", rarity:"Common", img:"https://images.pokemontcg.io/ex15/44_hires.png"},
+  {set:"DF", full:"Dragon Frontiers", num:"47", type:"Fire", year:2006, name:"Ekans", rarity:"Common", img:"https://images.pokemontcg.io/ex15/47_hires.png"},
+  {set:"P3", full:"POP Series 3", num:"12", type:"Psychic", year:2006, name:"Ditto", rarity:"Common", img:"https://images.pokemontcg.io/pop3/12_hires.png"},
+  {set:"LM", full:"Legend Maker", num:"58", type:"Fire", year:2006, name:"Magby", rarity:"Common", img:"https://images.pokemontcg.io/ex12/58_hires.png"},
+  {set:"LM", full:"Legend Maker", num:"61", type:"Grass", year:2006, name:"Seedot", rarity:"Common", img:"https://images.pokemontcg.io/ex12/61_hires.png"},
+  {set:"LM", full:"Legend Maker", num:"71", type:"Psychic", year:2006, name:"Wynaut", rarity:"Common", img:"https://images.pokemontcg.io/ex12/71_hires.png"},
+  {set:"DS", full:"Delta Species", num:"35", type:"Colorless", year:2005, name:"Ditto", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex11/35_hires.png"},
+  {set:"DS", full:"Delta Species", num:"36", type:"Grass", year:2005, name:"Ditto", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex11/36_hires.png"},
+  {set:"DS", full:"Delta Species", num:"37", type:"Fire", year:2005, name:"Ditto", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex11/37_hires.png"},
+  {set:"DS", full:"Delta Species", num:"38", type:"Psychic", year:2005, name:"Ditto", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex11/38_hires.png"},
+  {set:"DS", full:"Delta Species", num:"39", type:"Lightning", year:2005, name:"Ditto", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex11/39_hires.png"},
+  {set:"DS", full:"Delta Species", num:"40", type:"Water", year:2005, name:"Ditto", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex11/40_hires.png"},
+  {set:"DS", full:"Delta Species", num:"61", type:"Fire", year:2005, name:"Ditto", rarity:"Common", img:"https://images.pokemontcg.io/ex11/61_hires.png"},
+  {set:"DS", full:"Delta Species", num:"62", type:"Fighting", year:2005, name:"Ditto", rarity:"Common", img:"https://images.pokemontcg.io/ex11/62_hires.png"},
+  {set:"DS", full:"Delta Species", num:"63", type:"Lightning", year:2005, name:"Ditto", rarity:"Common", img:"https://images.pokemontcg.io/ex11/63_hires.png"},
+  {set:"DS", full:"Delta Species", num:"64", type:"Water", year:2005, name:"Ditto", rarity:"Common", img:"https://images.pokemontcg.io/ex11/64_hires.png"},
+  {set:"UF", full:"Unseen Forces", num:"21", type:"Colorless", year:2005, name:"Cleffa", rarity:"Rare", img:"https://images.pokemontcg.io/ex10/21_hires.png"},
+  {set:"UF", full:"Unseen Forces", num:"23", type:"Lightning", year:2005, name:"Elekid", rarity:"Rare", img:"https://images.pokemontcg.io/ex10/23_hires.png"},
+  {set:"UF", full:"Unseen Forces", num:"31", type:"Water", year:2005, name:"Smoochum", rarity:"Rare", img:"https://images.pokemontcg.io/ex10/31_hires.png"},
+  {set:"UF", full:"Unseen Forces", num:"33", type:"Fighting", year:2005, name:"Tyrogue", rarity:"Rare", img:"https://images.pokemontcg.io/ex10/33_hires.png"},
+  {set:"P2", full:"POP Series 2", num:"16", type:"Lightning", year:2005, name:"Pikachu", rarity:"Common", img:"https://images.pokemontcg.io/pop2/16_hires.png"},
+  {set:"EM", full:"Emerald", num:"24", type:"Fighting", year:2005, name:"Claydol", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex9/24_hires.png"},
+  {set:"EM", full:"Emerald", num:"34", type:"Colorless", year:2005, name:"Linoone", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex9/34_hires.png"},
+  {set:"EM", full:"Emerald", num:"43", type:"Fighting", year:2005, name:"Baltoy", rarity:"Common", img:"https://images.pokemontcg.io/ex9/43_hires.png"},
+  {set:"EM", full:"Emerald", num:"74", type:"Colorless", year:2005, name:"Zigzagoon", rarity:"Common", img:"https://images.pokemontcg.io/ex9/74_hires.png"},
+  {set:"DX", full:"Deoxys", num:"29", type:"Psychic", year:2005, name:"Xatu", rarity:"Rare", img:"https://images.pokemontcg.io/ex8/29_hires.png"},
+  {set:"DX", full:"Deoxys", num:"30", type:"Fighting", year:2005, name:"Donphan", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex8/30_hires.png"},
+  {set:"DX", full:"Deoxys", num:"66", type:"Psychic", year:2005, name:"Natu", rarity:"Common", img:"https://images.pokemontcg.io/ex8/66_hires.png"},
+  {set:"DX", full:"Deoxys", num:"69", type:"Fighting", year:2005, name:"Phanpy", rarity:"Common", img:"https://images.pokemontcg.io/ex8/69_hires.png"},
+  {set:"TRR", full:"Team Rocket Returns", num:"21", type:"Water", year:2004, name:"Delibird", rarity:"Rare", img:"https://images.pokemontcg.io/ex7/21_hires.png"},
+  {set:"TRR", full:"Team Rocket Returns", num:"22", type:"Colorless", year:2004, name:"Furret", rarity:"Rare", img:"https://images.pokemontcg.io/ex7/22_hires.png"},
+  {set:"TRR", full:"Team Rocket Returns", num:"75", type:"Colorless", year:2004, name:"Sentret", rarity:"Common", img:"https://images.pokemontcg.io/ex7/75_hires.png"},
+  {set:"TRR", full:"Team Rocket Returns", num:"78", type:"Grass", year:2004, name:"Spinarak", rarity:"Common", img:"https://images.pokemontcg.io/ex7/78_hires.png"},
+  {set:"RG", full:"FireRed & LeafGreen", num:"14", type:"Psychic", year:2004, name:"Slowbro", rarity:"Holo Rare", img:"https://images.pokemontcg.io/ex6/14_hires.png"},
+  {set:"RG", full:"FireRed & LeafGreen", num:"30", type:"Grass", year:2004, name:"Tangela", rarity:"Rare", img:"https://images.pokemontcg.io/ex6/30_hires.png"},
+  {set:"RG", full:"FireRed & LeafGreen", num:"43", type:"Grass", year:2004, name:"Parasect", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex6/43_hires.png"},
+  {set:"RG", full:"FireRed & LeafGreen", num:"72", type:"Grass", year:2004, name:"Paras", rarity:"Common", img:"https://images.pokemontcg.io/ex6/72_hires.png"},
+  {set:"RG", full:"FireRed & LeafGreen", num:"80", type:"Psychic", year:2004, name:"Slowpoke", rarity:"Common", img:"https://images.pokemontcg.io/ex6/80_hires.png"},
+  {set:"HL", full:"Hidden Legends", num:"16", type:"Grass", year:2004, name:"Bellossom", rarity:"Rare", img:"https://images.pokemontcg.io/ex5/16_hires.png"},
+  {set:"HL", full:"Hidden Legends", num:"35", type:"Grass", year:2004, name:"Gloom", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex5/35_hires.png"},
+  {set:"HL", full:"Hidden Legends", num:"50", type:"Grass", year:2004, name:"Swalot", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex5/50_hires.png"},
+  {set:"HL", full:"Hidden Legends", num:"62", type:"Grass", year:2004, name:"Gulpin", rarity:"Common", img:"https://images.pokemontcg.io/ex5/62_hires.png"},
+  {set:"HL", full:"Hidden Legends", num:"68", type:"Grass", year:2004, name:"Oddish", rarity:"Common", img:"https://images.pokemontcg.io/ex5/68_hires.png"},
+  {set:"DR", full:"Dragon", num:"41", type:"Colorless", year:2003, name:"Shelgon", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex3/41_hires.png"},
+  {set:"DR", full:"Dragon", num:"57", type:"Grass", year:2003, name:"Grimer", rarity:"Common", img:"https://images.pokemontcg.io/ex3/57_hires.png"},
+  {set:"DR", full:"Dragon", num:"69", type:"Fire", year:2003, name:"Numel", rarity:"Common", img:"https://images.pokemontcg.io/ex3/69_hires.png"},
+  {set:"DR", full:"Dragon", num:"78", type:"Fighting", year:2003, name:"Trapinch", rarity:"Common", img:"https://images.pokemontcg.io/ex3/78_hires.png"},
+
+  // --- WotC era ---
+  {set:"E3", full:"Skyridge", num:"24", type:"Water", year:2003, name:"Piloswine", rarity:"Rare", img:"https://images.pokemontcg.io/ecard3/24_hires.png"},
+  {set:"E3", full:"Skyridge", num:"27", type:"Lightning", year:2003, name:"Raichu", rarity:"Rare", img:"https://images.pokemontcg.io/ecard3/27_hires.png"},
+  {set:"E3", full:"Skyridge", num:"53", type:"Colorless", year:2003, name:"Dunsparce", rarity:"Common", img:"https://images.pokemontcg.io/ecard3/53_hires.png"},
+  {set:"E3", full:"Skyridge", num:"84", type:"Lightning", year:2003, name:"Pikachu", rarity:"Common", img:"https://images.pokemontcg.io/ecard3/84_hires.png"},
+  {set:"E3", full:"Skyridge", num:"107", type:"Water", year:2003, name:"Swinub", rarity:"Common", img:"https://images.pokemontcg.io/ecard3/107_hires.png"},
+  {set:"E3", full:"Skyridge", num:"H22", type:"Water", year:2003, name:"Piloswine", rarity:"Holo Rare", img:"https://images.pokemontcg.io/ecard3/H22_hires.png"},
+  {set:"E3", full:"Skyridge", num:"H25", type:"Lightning", year:2003, name:"Raichu", rarity:"Holo Rare", img:"https://images.pokemontcg.io/ecard3/H25_hires.png"},
+  {set:"E2", full:"Aquapolis", num:"17", type:"Grass", year:2003, name:"Jumpluff", rarity:"Rare", img:"https://images.pokemontcg.io/ecard2/17_hires.png"},
+  {set:"E2", full:"Aquapolis", num:"21", type:"Lightning", year:2003, name:"Lanturn", rarity:"Rare", img:"https://images.pokemontcg.io/ecard2/21_hires.png"},
+  {set:"E2", full:"Aquapolis", num:"60", type:"Grass", year:2003, name:"Skiploom", rarity:"Uncommon", img:"https://images.pokemontcg.io/ecard2/60_hires.png"},
+  {set:"E2", full:"Aquapolis", num:"70", type:"Water", year:2003, name:"Chinchou", rarity:"Common", img:"https://images.pokemontcg.io/ecard2/70_hires.png"},
+  {set:"E2", full:"Aquapolis", num:"83", type:"Grass", year:2003, name:"Hoppip", rarity:"Common", img:"https://images.pokemontcg.io/ecard2/83_hires.png"},
+  {set:"E2", full:"Aquapolis", num:"90", type:"Colorless", year:2003, name:"Lickitung", rarity:"Common", img:"https://images.pokemontcg.io/ecard2/90_hires.png"},
+  {set:"E2", full:"Aquapolis", num:"H13", type:"Grass", year:2003, name:"Jumpluff", rarity:"Holo Rare", img:"https://images.pokemontcg.io/ecard2/H13_hires.png"},
+  {set:"E2", full:"Aquapolis", num:"H15", type:"Lightning", year:2003, name:"Lanturn", rarity:"Holo Rare", img:"https://images.pokemontcg.io/ecard2/H15_hires.png"},
+  {set:"E1", full:"Expedition", num:"24", type:"Water", year:2002, name:"Poliwrath", rarity:"Holo Rare", img:"https://images.pokemontcg.io/ecard1/24_hires.png"},
+  {set:"E1", full:"Expedition", num:"60", type:"Water", year:2002, name:"Poliwrath", rarity:"Rare", img:"https://images.pokemontcg.io/ecard1/60_hires.png"},
+  {set:"E1", full:"Expedition", num:"89", type:"Water", year:2002, name:"Poliwhirl", rarity:"Uncommon", img:"https://images.pokemontcg.io/ecard1/89_hires.png"},
+  {set:"E1", full:"Expedition", num:"125", type:"Water", year:2002, name:"Poliwag", rarity:"Common", img:"https://images.pokemontcg.io/ecard1/125_hires.png"},
+  {set:"E1", full:"Expedition", num:"128", type:"Colorless", year:2002, name:"Rattata", rarity:"Common", img:"https://images.pokemontcg.io/ecard1/128_hires.png"},
+  {set:"E1", full:"Expedition", num:"131", type:"Water", year:2002, name:"Squirtle", rarity:"Common", img:"https://images.pokemontcg.io/ecard1/131_hires.png"},
+  {set:"E1", full:"Expedition", num:"136", type:"Fire", year:2002, name:"Vulpix", rarity:"Common", img:"https://images.pokemontcg.io/ecard1/136_hires.png"},
+  {set:"N4", full:"Neo Destiny", num:"13", type:"Water", year:2002, name:"Light Azumarill", rarity:"Holo Rare", img:"https://images.pokemontcg.io/neo4/13_hires.png"},
+  {set:"N4", full:"Neo Destiny", num:"31", type:"Colorless", year:2002, name:"Chansey", rarity:"Uncommon", img:"https://images.pokemontcg.io/neo4/31_hires.png"},
+  {set:"N4", full:"Neo Destiny", num:"44", type:"Colorless", year:2002, name:"Jigglypuff", rarity:"Uncommon", img:"https://images.pokemontcg.io/neo4/44_hires.png"},
+  {set:"N4", full:"Neo Destiny", num:"56", type:"Colorless", year:2002, name:"Togepi", rarity:"Uncommon", img:"https://images.pokemontcg.io/neo4/56_hires.png"},
+  {set:"N4", full:"Neo Destiny", num:"63", type:"Colorless", year:2002, name:"Dratini", rarity:"Common", img:"https://images.pokemontcg.io/neo4/63_hires.png"},
+  {set:"N4", full:"Neo Destiny", num:"66", type:"Colorless", year:2002, name:"Girafarig", rarity:"Common", img:"https://images.pokemontcg.io/neo4/66_hires.png"},
+  {set:"N4", full:"Neo Destiny", num:"79", type:"Water", year:2002, name:"Psyduck", rarity:"Common", img:"https://images.pokemontcg.io/neo4/79_hires.png"},
+  {set:"N3", full:"Neo Revelation", num:"2", type:"Colorless", year:2001, name:"Blissey", rarity:"Holo Rare", img:"https://images.pokemontcg.io/neo3/2_hires.png"},
+  {set:"N3", full:"Neo Revelation", num:"45", type:"Water", year:2001, name:"Goldeen", rarity:"Common", img:"https://images.pokemontcg.io/neo3/45_hires.png"},
+  {set:"N3", full:"Neo Revelation", num:"48", type:"Water", year:2001, name:"Quagsire", rarity:"Common", img:"https://images.pokemontcg.io/neo3/48_hires.png"},
+  {set:"N3", full:"Neo Revelation", num:"51", type:"Fighting", year:2001, name:"Shuckle", rarity:"Common", img:"https://images.pokemontcg.io/neo3/51_hires.png"},
+  {set:"N2", full:"Neo Discovery", num:"37", type:"Water", year:2001, name:"Corsola", rarity:"Uncommon", img:"https://images.pokemontcg.io/neo2/37_hires.png"},
+  {set:"N2", full:"Neo Discovery", num:"53", type:"Grass", year:2001, name:"Caterpie", rarity:"Common", img:"https://images.pokemontcg.io/neo2/53_hires.png"},
+  {set:"N2", full:"Neo Discovery", num:"56", type:"Water", year:2001, name:"Kabuto", rarity:"Common", img:"https://images.pokemontcg.io/neo2/56_hires.png"},
+  {set:"N2", full:"Neo Discovery", num:"60", type:"Fighting", year:2001, name:"Omanyte", rarity:"Common", img:"https://images.pokemontcg.io/neo2/60_hires.png"},
+
+  // ==================== SACHIKO ADACHI ====================
+  {artist:"Sachiko Adachi", set:"UNM", full:"Unified Minds", num:"029", type:"Fire", year:2019, name:"Lampent", rarity:"Uncommon"},
+  {artist:"Sachiko Adachi", set:"CES", full:"Celestial Storm", num:"005", type:"Grass", year:2018, name:"Spinarak", rarity:"Common"},
+  {artist:"Sachiko Adachi", set:"LTR", full:"Legendary Treasures", num:"041", type:"Water", year:2013, name:"Palpitoad", rarity:"Uncommon"},
+  {artist:"Sachiko Adachi", set:"TM", full:"Triumphant", num:"050", type:"Water", year:2010, name:"Tentacruel", rarity:"Uncommon"},
+  {artist:"Sachiko Adachi", set:"TM", full:"Triumphant", num:"080", type:"Water", year:2010, name:"Tentacool", rarity:"Common"},
+  {artist:"Sachiko Adachi", set:"UD", full:"Undaunted", num:"034", type:"Colorless", year:2010, name:"Raticate", rarity:"Uncommon"},
+  {artist:"Sachiko Adachi", set:"UD", full:"Undaunted", num:"064", type:"Colorless", year:2010, name:"Rattata", rarity:"Common"},
+  {artist:"Sachiko Adachi", set:"UL", full:"Unleashed", num:"009", type:"Fighting", year:2010, name:"Sudowoodo", rarity:"Holo Rare"},
+  {artist:"Sachiko Adachi", set:"UL", full:"Unleashed", num:"022", type:"Fighting", year:2010, name:"Primeape", rarity:"Rare"},
+  {artist:"Sachiko Adachi", set:"UL", full:"Unleashed", num:"053", type:"Fighting", year:2010, name:"Mankey", rarity:"Common"},
+  {artist:"Sachiko Adachi", set:"HS", full:"HeartGold & SoulSilver", num:"043", type:"Grass", year:2010, name:"Heracross", rarity:"Uncommon"},
+  {artist:"Sachiko Adachi", set:"AR", full:"Arceus", num:"37", type:"Fighting", year:2009, name:"Graveler", rarity:"Uncommon", img:"https://images.pokemontcg.io/pl4/37_hires.png"},
+  {artist:"Sachiko Adachi", set:"AR", full:"Arceus", num:"40", type:"Psychic", year:2009, name:"Gulpin", rarity:"Uncommon", img:"https://images.pokemontcg.io/pl4/40_hires.png"},
+  {artist:"Sachiko Adachi", set:"SF", full:"Stormfront", num:"41", type:"Fighting", year:2008, name:"Machoke", rarity:"Uncommon", img:"https://images.pokemontcg.io/dp7/41_hires.png"},
+  {artist:"Sachiko Adachi", set:"SF", full:"Stormfront", num:"60", type:"Psychic", year:2008, name:"Duskull", rarity:"Common", img:"https://images.pokemontcg.io/dp7/60_hires.png"},
+  {artist:"Sachiko Adachi", set:"SF", full:"Stormfront", num:"73", type:"Grass", year:2008, name:"Skorupi", rarity:"Common", img:"https://images.pokemontcg.io/dp7/73_hires.png"},
+  {artist:"Sachiko Adachi", set:"PK", full:"Power Keepers", num:"31", type:"Psychic", year:2007, name:"Kirlia", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex16/31_hires.png"},
+  {artist:"Sachiko Adachi", set:"PK", full:"Power Keepers", num:"32", type:"Metal", year:2007, name:"Lairon", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex16/32_hires.png"},
+  {artist:"Sachiko Adachi", set:"PK", full:"Power Keepers", num:"48", type:"Fire", year:2007, name:"Charmander", rarity:"Common", img:"https://images.pokemontcg.io/ex16/48_hires.png"},
+  {artist:"Sachiko Adachi", set:"PK", full:"Power Keepers", num:"68", type:"Fighting", year:2007, name:"Trapinch", rarity:"Common", img:"https://images.pokemontcg.io/ex16/68_hires.png"},
+  {artist:"Sachiko Adachi", set:"DF", full:"Dragon Frontiers", num:"21", type:"Grass", year:2006, name:"Quagsire", rarity:"Rare", img:"https://images.pokemontcg.io/ex15/21_hires.png"},
+  {artist:"Sachiko Adachi", set:"DF", full:"Dragon Frontiers", num:"22", type:"Fighting", year:2006, name:"Seadra", rarity:"Rare", img:"https://images.pokemontcg.io/ex15/22_hires.png"},
+  {artist:"Sachiko Adachi", set:"DF", full:"Dragon Frontiers", num:"54", type:"Colorless", year:2006, name:"Mareep", rarity:"Common", img:"https://images.pokemontcg.io/ex15/54_hires.png"},
+  {artist:"Sachiko Adachi", set:"DF", full:"Dragon Frontiers", num:"70", type:"Psychic", year:2006, name:"Vulpix", rarity:"Common", img:"https://images.pokemontcg.io/ex15/70_hires.png"},
+  {artist:"Sachiko Adachi", set:"CG", full:"Crystal Guardians", num:"31", type:"Fire", year:2006, name:"Combusken", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex14/31_hires.png"},
+  {artist:"Sachiko Adachi", set:"CG", full:"Crystal Guardians", num:"65", type:"Fire", year:2006, name:"Torchic", rarity:"Common", img:"https://images.pokemontcg.io/ex14/65_hires.png"},
+  {artist:"Sachiko Adachi", set:"CG", full:"Crystal Guardians", num:"67", type:"Grass", year:2006, name:"Treecko", rarity:"Common", img:"https://images.pokemontcg.io/ex14/67_hires.png"},
+  {artist:"Sachiko Adachi", set:"LM", full:"Legend Maker", num:"30", type:"Grass", year:2006, name:"Cascoon", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex12/30_hires.png"},
+  {artist:"Sachiko Adachi", set:"LM", full:"Legend Maker", num:"50", type:"Lightning", year:2006, name:"Chinchou", rarity:"Common", img:"https://images.pokemontcg.io/ex12/50_hires.png"},
+  {artist:"Sachiko Adachi", set:"LM", full:"Legend Maker", num:"51", type:"Water", year:2006, name:"Clamperl", rarity:"Common", img:"https://images.pokemontcg.io/ex12/51_hires.png"},
+  {artist:"Sachiko Adachi", set:"DS", full:"Delta Species", num:"46", type:"Grass", year:2005, name:"Kakuna", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex11/46_hires.png"},
+  {artist:"Sachiko Adachi", set:"DS", full:"Delta Species", num:"72", type:"Grass", year:2005, name:"Koffing", rarity:"Common", img:"https://images.pokemontcg.io/ex11/72_hires.png"},
+  {artist:"Sachiko Adachi", set:"DS", full:"Delta Species", num:"75", type:"Fighting", year:2005, name:"Makuhita", rarity:"Common", img:"https://images.pokemontcg.io/ex11/75_hires.png"},
+  {artist:"Sachiko Adachi", set:"DS", full:"Delta Species", num:"79", type:"Darkness", year:2005, name:"Poochyena", rarity:"Common", img:"https://images.pokemontcg.io/ex11/79_hires.png"},
+  {artist:"Sachiko Adachi", set:"UF", full:"Unseen Forces", num:"34", type:"Colorless", year:2005, name:"Aipom", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex10/34_hires.png"},
+  {artist:"Sachiko Adachi", set:"UF", full:"Unseen Forces", num:"71", type:"Water", year:2005, name:"Remoraid", rarity:"Common", img:"https://images.pokemontcg.io/ex10/71_hires.png"},
+  {artist:"Sachiko Adachi", set:"UF", full:"Unseen Forces", num:"75", type:"Grass", year:2005, name:"Spinarak", rarity:"Common", img:"https://images.pokemontcg.io/ex10/75_hires.png"},
+  {artist:"Sachiko Adachi", set:"DX", full:"Deoxys", num:"31", type:"Grass", year:2005, name:"Golbat", rarity:"Uncommon", img:"https://images.pokemontcg.io/ex8/31_hires.png"},
+  {artist:"Sachiko Adachi", set:"DX", full:"Deoxys", num:"83", type:"Grass", year:2005, name:"Zubat", rarity:"Common", img:"https://images.pokemontcg.io/ex8/83_hires.png"},
+  {artist:"Sachiko Adachi", set:"TRR", full:"Team Rocket Returns", num:"52", type:"Colorless", year:2004, name:"Dratini", rarity:"Common", img:"https://images.pokemontcg.io/ex7/52_hires.png"},
+  {artist:"Sachiko Adachi", set:"TRR", full:"Team Rocket Returns", num:"66", type:"Lightning", year:2004, name:"Magnemite", rarity:"Common", img:"https://images.pokemontcg.io/ex7/66_hires.png"},
+  {artist:"Sachiko Adachi", set:"TRR", full:"Team Rocket Returns", num:"80", type:"Lightning", year:2004, name:"Voltorb", rarity:"Common", img:"https://images.pokemontcg.io/ex7/80_hires.png"},
+
+  // ==================== ASAKO ITO ====================
+  {artist:"Asako Ito", set:"PBL", full:"Pitch Black", num:"015", type:"Water", year:2026, name:"Wailmer", rarity:"Common"},
+  {artist:"Asako Ito", set:"BLK", full:"Black Bolt", num:"151", type:"Colorless", year:2025, name:"Audino", rarity:"Special"},
+  {artist:"Asako Ito", set:"JTG", full:"Journey Together", num:"120", type:"Colorless", year:2025, name:"Dunsparce", rarity:"Common"},
+  {artist:"Asako Ito", set:"TWM", full:"Twilight Masquerade", num:"091", type:"Psychic", year:2024, name:"Sandygast", rarity:"Common"},
+  {artist:"Asako Ito", set:"TEF", full:"Temporal Forces", num:"003", type:"Grass", year:2024, name:"Seedot", rarity:"Common"},
+  {artist:"Asako Ito", set:"CRZ", full:"Crown Zenith", num:"109", type:"Colorless", year:2023, name:"Snorlax", rarity:"Rare"},
+  {artist:"Asako Ito", set:"CRZ", full:"Crown Zenith", num:"GG19", type:"Dragon", year:2023, name:"Altaria", rarity:"Special"},
+  {artist:"Asako Ito", set:"SIT", full:"Silver Tempest", num:"081", type:"Psychic", year:2022, name:"Espurr", rarity:"Common"},
+  {artist:"Asako Ito", set:"SIT", full:"Silver Tempest", num:"083", type:"Psychic", year:2022, name:"Swirlix", rarity:"Common"},
+  {artist:"Asako Ito", set:"LOR", full:"Lost Origin", num:"018", type:"Grass", year:2022, name:"Blipbug", rarity:"Common"},
+  {artist:"Asako Ito", set:"FST", full:"Fusion Strike", num:"018", type:"Grass", year:2021, name:"Grubbin", rarity:"Common"},
+  {artist:"Asako Ito", set:"FST", full:"Fusion Strike", num:"111", type:"Psychic", year:2021, name:"Wigglytuff", rarity:"Uncommon"},
+  {artist:"Asako Ito", set:"CRE", full:"Chilling Reign", num:"121", type:"Colorless", year:2021, name:"Castform", rarity:"Common"},
+  {artist:"Asako Ito", set:"BST", full:"Battle Styles", num:"089", type:"Darkness", year:2021, name:"Zubat", rarity:"Common"},
+  {artist:"Asako Ito", set:"VIV", full:"Vivid Voltage", num:"072", type:"Psychic", year:2020, name:"Chimecho", rarity:"Common"},
+  {artist:"Asako Ito", set:"DAA", full:"Darkness Ablaze", num:"089", type:"Fighting", year:2020, name:"Trapinch", rarity:"Common"},
+  {artist:"Asako Ito", set:"RCL", full:"Rebel Clash", num:"002", type:"Grass", year:2020, name:"Metapod", rarity:"Uncommon"},
+  {artist:"Asako Ito", set:"SSH", full:"Sword & Shield", num:"087", type:"Psychic", year:2020, name:"Munna", rarity:"Common"},
+  {artist:"Asako Ito", set:"CEC", full:"Cosmic Eclipse", num:"058", type:"Water", year:2019, name:"Tympole", rarity:"Common"},
+  {artist:"Asako Ito", set:"CEC", full:"Cosmic Eclipse", num:"146", type:"Fairy", year:2019, name:"Azurill", rarity:"Common"},
+  {artist:"Asako Ito", set:"UNM", full:"Unified Minds", num:"112", type:"Fighting", year:2019, name:"Gible", rarity:"Common"},
+  {artist:"Asako Ito", set:"UNM", full:"Unified Minds", num:"143", type:"Fairy", year:2019, name:"Cottonee", rarity:"Common"},
+  {artist:"Asako Ito", set:"UNB", full:"Unbroken Bonds", num:"006", type:"Grass", year:2019, name:"Oddish", rarity:"Common"},
+  {artist:"Asako Ito", set:"UNB", full:"Unbroken Bonds", num:"053", type:"Water", year:2019, name:"Pyukumuku", rarity:"Uncommon"},
+  {artist:"Asako Ito", set:"TEU", full:"Team Up", num:"039", type:"Lightning", year:2019, name:"Electrode", rarity:"Holo Rare"},
+  {artist:"Asako Ito", set:"LOT", full:"Lost Thunder", num:"101", type:"Psychic", year:2018, name:"Litwick", rarity:"Common"},
+  {artist:"Asako Ito", set:"LOT", full:"Lost Thunder", num:"111", type:"Fighting", year:2018, name:"Phanpy", rarity:"Common"},
+  {artist:"Asako Ito", set:"CES", full:"Celestial Storm", num:"044", type:"Water", year:2018, name:"Luvdisc", rarity:"Common"},
+  {artist:"Asako Ito", set:"CES", full:"Celestial Storm", num:"105", type:"Dragon", year:2018, name:"Shelgon", rarity:"Uncommon"},
+  {artist:"Asako Ito", set:"CES", full:"Celestial Storm", num:"117", type:"Colorless", year:2018, name:"Whismur", rarity:"Common"},
+  {artist:"Asako Ito", set:"UPR", full:"Ultra Prism", num:"010", type:"Grass", year:2018, name:"Cherubi", rarity:"Common"},
+  {artist:"Asako Ito", set:"UPR", full:"Ultra Prism", num:"051", type:"Psychic", year:2018, name:"Drifloon", rarity:"Common"},
+  {artist:"Asako Ito", set:"BUS", full:"Burning Shadows", num:"034", type:"Water", year:2017, name:"Marill", rarity:"Common"},
+  {artist:"Asako Ito", set:"BUS", full:"Burning Shadows", num:"044", type:"Lightning", year:2017, name:"Tynamo", rarity:"Common"},
+  {artist:"Asako Ito", set:"GRI", full:"Guardians Rising", num:"094", type:"Dragon", year:2017, name:"Goomy", rarity:"Common"},
+  {artist:"Asako Ito", set:"SUM", full:"Sun & Moon", num:"030", type:"Water", year:2017, name:"Poliwag", rarity:"Common"},
+
+  // ==================== HIZUKI MISONO ====================
+  {artist:"Hizuki Misono", set:"SK", full:"Skyridge", num:"65", type:"Colorless", year:2003, name:"Hoothoot", rarity:"Common", img:"https://pkmncards.com/wp-content/uploads/hoothoot-skyridge-sk-65.jpg"},
+  {artist:"Hizuki Misono", set:"AQ", full:"Aquapolis", num:"93", type:"Lightning", year:2003, name:"Mareep", rarity:"Common", img:"https://pkmncards.com/wp-content/uploads/mareep-aquapolis-aq-93.jpg"},
+  {artist:"Hizuki Misono", set:"AQ", full:"Aquapolis", num:"107", type:"Colorless", year:2003, name:"Sentret", rarity:"Common", img:"https://pkmncards.com/wp-content/uploads/sentret-aquapolis-aq-107.jpg"},
+  {artist:"Hizuki Misono", set:"SK", full:"Skyridge", num:"34", type:"Colorless", year:2003, name:"Wigglytuff", rarity:"Rare", img:"https://pkmncards.com/wp-content/uploads/wigglytuff-skyridge-sk-34.jpg"},
+];
+
+const TYPE_ES = {
+  Grass:"Planta", Fire:"Fuego", Water:"Agua", Lightning:"Rayo", Psychic:"Psíquica",
+  Fighting:"Lucha", Darkness:"Oscura", Metal:"Metálica", Fairy:"Hada",
+  Colorless:"Incoloro", Dragon:"Dragón"
+};
+const TYPE_COLOR = {
+  Grass:"#4f9153", Fire:"#e0692f", Water:"#3f80c4", Lightning:"#d8ae2e", Psychic:"#a1569a",
+  Fighting:"#a8622c", Darkness:"#4a4560", Metal:"#8a93a0", Fairy:"#e08fb0",
+  Colorless:"#a39d8a", Dragon:"#6f6ad6"
+};
+
+CARDS.forEach(c => {
+  if (!c.artist) c.artist = "Yuka Morii";
+  c.id = c.set + "-" + c.num;
+  if (!c.img) {
+    c.img = `https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/${c.set}/${c.set}_${c.num}_R_EN_SM.png`;
+  }
+  c.rarityClass = c.rarity.toLowerCase().replace(/\s+/g, "-");
+  c.typeEs = TYPE_ES[c.type] || c.type;
+  c.typeColor = TYPE_COLOR[c.type] || "#a39d8a";
+});
+
+const STORAGE_KEY = "yukaMoriiChecklist";
+let owned = {};
+let currentFilter = "all";
+let currentArtist = "all";
+let currentType = "all";
+let currentSort = "default";
+let currentAsc = true;
+let currentSearch = "";
+
+async function loadOwned(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){ owned = JSON.parse(res.value); }
+  }catch(e){ owned = {}; }
+}
+
+async function saveOwned(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(owned), false);
+  }catch(e){ console.error("No se pudo guardar", e); }
+}
+
+function toggle(id){
+  owned[id] = !owned[id];
+  saveOwned();
+  render();
+}
+
+function updateCounter(){
+  const ownedN = Object.values(owned).filter(Boolean).length;
+  document.getElementById("ownedCount").textContent = ownedN;
+  document.getElementById("totalCount").textContent = CARDS.length;
+}
+
+function getFiltered(){
+  let list = CARDS.slice();
+  if(currentSearch){
+    const q = currentSearch.toLowerCase();
+    list = list.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.set.toLowerCase().includes(q) ||
+      c.full.toLowerCase().includes(q) ||
+      c.artist.toLowerCase().includes(q)
+    );
+  }
+  if(currentArtist !== "all"){ list = list.filter(c => c.artist === currentArtist); }
+  if(currentType !== "all"){ list = list.filter(c => c.type === currentType); }
+  if(currentFilter === "owned"){ list = list.filter(c => owned[c.id]); }
+  if(currentFilter === "missing"){ list = list.filter(c => !owned[c.id]); }
+
+  if(currentSort === "name"){
+    list.sort((a,b) => a.name.localeCompare(b.name));
+  } else if(currentSort === "year"){
+    list.sort((a,b) => a.year - b.year || a.name.localeCompare(b.name));
+  } else if(currentSort === "type"){
+    list.sort((a,b) => a.typeEs.localeCompare(b.typeEs) || a.name.localeCompare(b.name));
+  } else if(currentSort === "set"){
+    list.sort((a,b) => a.set.localeCompare(b.set) || a.num.localeCompare(b.num));
+  } else if(currentSort === "artist"){
+    list.sort((a,b) => a.artist.localeCompare(b.artist) || a.name.localeCompare(b.name));
+  }
+  if(!currentAsc){ list.reverse(); }
+  return list;
+}
+
+function render(){
+  updateCounter();
+  const grid = document.getElementById("grid");
+  const list = getFiltered();
+  grid.innerHTML = "";
+
+  if(list.length === 0){
+    grid.innerHTML = `<div class="empty">Ninguna carta coincide con la búsqueda.</div>`;
+    return;
+  }
+
+  list.forEach(c => {
+    const isOwned = !!owned[c.id];
+    const el = document.createElement("div");
+    el.className = "specimen" + (isOwned ? " owned" : "");
+    el.innerHTML = `
+      <div class="thumb-wrap">
+        <img src="${c.img}" alt="${c.name}" loading="lazy" />
+        <div class="stamp ${isOwned ? "" : "unchecked"}" role="checkbox" aria-checked="${isOwned}" tabindex="0" title="${isOwned ? 'Marcada como tenida' : 'Marcar como tenida'}">✓</div>
+      </div>
+      <div class="meta">
+        <div class="name">${c.name}</div>
+        <div class="setline">${c.set} · #${c.num}</div>
+        <div class="setfull">${c.full}</div>
+        <div class="card-tags">
+          <span class="type-tag" style="background:${c.typeColor}">${c.typeEs}</span>
+          <span class="year-tag">${c.year}</span>
+        </div>
+        <div class="artist-tag">🖌 ${c.artist}</div>
+        <div class="rarity ${c.rarityClass}">${c.rarity}</div>
+      </div>
+    `;
+    const stamp = el.querySelector(".stamp");
+    stamp.addEventListener("click", () => toggle(c.id));
+    stamp.addEventListener("keydown", (e) => {
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); toggle(c.id); }
+    });
+    grid.appendChild(el);
+  });
+}
+
+document.getElementById("searchBox").addEventListener("input", (e) => {
+  currentSearch = e.target.value;
+  render();
+});
+document.getElementById("sortSelect").addEventListener("change", (e) => {
+  currentSort = e.target.value;
+  render();
+});
+document.getElementById("dirToggle").addEventListener("click", () => {
+  currentAsc = !currentAsc;
+  const btn = document.getElementById("dirToggle");
+  btn.textContent = currentAsc ? "↑ Ascendente" : "↓ Descendente";
+  render();
+});
+document.getElementById("artistSelect").addEventListener("change", (e) => {
+  currentArtist = e.target.value;
+  render();
+});
+document.querySelectorAll("#typeRow button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#typeRow button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentType = btn.dataset.type;
+    render();
+  });
+});
+document.querySelectorAll(".chip-toggle button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".chip-toggle button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentFilter = btn.dataset.filter;
+    render();
+  });
+});
+
+(async function init(){
+  await loadOwned();
+  render();
+})();
+</script>
+</body>
+</html>
