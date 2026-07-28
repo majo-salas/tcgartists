@@ -262,6 +262,23 @@
     color:var(--ink-soft);
   }
 
+  .price-link{
+    align-self:flex-start;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:11px;
+    color:var(--teal);
+    background:transparent;
+    border:none;
+    padding:0;
+    text-decoration:none;
+    border-bottom:1px dotted var(--teal);
+    margin-top:2px;
+    cursor:pointer;
+  }
+  .price-link:hover{color:var(--forest-deep); border-color:var(--forest-deep);}
+  .price-link:disabled{color:var(--ink-soft); border-color:var(--ink-soft); cursor:wait;}
+  .price-link.price-error{color:var(--plum); border-color:var(--plum);}
+
   .grid{
     display:grid;
     grid-template-columns:repeat(auto-fill, minmax(150px,1fr));
@@ -470,6 +487,16 @@
     <button data-type="Fairy">✨ Hada</button>
     <button data-type="Colorless">⭐ Incoloro</button>
     <button data-type="Dragon">🐉 Dragón</button>
+  </div>
+
+  <div class="type-row" id="rarityRow">
+    <button data-rarity="all" class="active">Todas las rarezas</button>
+    <button data-rarity="Common">Common</button>
+    <button data-rarity="Uncommon">Uncommon</button>
+    <button data-rarity="Rare">Rare</button>
+    <button data-rarity="Holo Rare">Holo Rare</button>
+    <button data-rarity="Special">Special</button>
+    <button data-rarity="Promo">Promo</button>
   </div>
 
   <div class="grid" id="grid"></div>
@@ -805,6 +832,27 @@ const TYPE_COLOR = {
   Colorless:"#a39d8a", Dragon:"#6f6ad6"
 };
 
+// Mapea el código de set que usamos (LimitlessTCG) al id de set que usa
+// api.pokemontcg.io, para poder pedir el precio real de TCGplayer por carta.
+const SET_TO_PTCGIO = {
+  AOR:"xy7", AQ:"ecard2", AR:"pl4", ASR:"swsh10", BKP:"xy9", BKT:"xy8", BLK:"zsv10pt5",
+  BRS:"swsh9", BST:"swsh5", BUS:"sm3", CEC:"sm12", CES:"sm7", CG:"ex14", CIN:"sm4",
+  CPA:"swsh35", CRE:"swsh6", CRZ:"swsh12pt5", DAA:"swsh3", DF:"ex15", DR:"ex3",
+  DRI:"sv10", DRM:"sm75", DS:"ex11", DX:"ex8", E1:"ecard1", E2:"ecard2", E3:"ecard3",
+  EM:"ex9", EVS:"swsh7", FCO:"xy10", FLI:"sm6", FST:"swsh8", GEN:"g1", GRI:"sm2",
+  HL:"ex5", HS:"hgss1", JTG:"sv9", LM:"ex12", LOR:"swsh11", LOT:"sm8", LTR:"bw11",
+  MEG:"me1", MEW:"sv3pt5", MT:"dp2", N2:"neo2", N3:"neo3", N4:"neo4", OBF:"sv3",
+  P2:"pop2", P3:"pop3", P8:"pop8", PAL:"sv2", PAR:"sv4", PBL:"me5", PFL:"me2",
+  PGO:"pgo", PK:"ex16", PL:"pl1", PRC:"xy5", RCL:"swsh2", RG:"ex6", ROS:"xy6",
+  SCR:"sv7", SF:"dp7", SIT:"swsh12", SK:"ecard3", SMP:"smp", SSH:"swsh1", SSP:"sv8",
+  STS:"xy11", SUM:"sm1", SV:"pl3", SVI:"sv1", TEF:"sv5", TEU:"sm9", TM:"hgss4",
+  TRR:"ex7", TWM:"sv6", UD:"hgss3", UF:"ex10", UL:"hgss2", UNB:"sm10", UNM:"sm11",
+  UPR:"sm5", VIV:"swsh4", WHT:"rsv10pt5"
+};
+const PRICE_CACHE_KEY = "yukaMoriiPriceCache";
+let priceCache = {};
+try{ priceCache = JSON.parse(localStorage.getItem(PRICE_CACHE_KEY) || "{}"); }catch(e){ priceCache = {}; }
+
 CARDS.forEach(c => {
   if (!c.artist) c.artist = "Yuka Morii";
   c.id = c.set + "-" + c.num;
@@ -814,7 +862,69 @@ CARDS.forEach(c => {
   c.rarityClass = c.rarity.toLowerCase().replace(/\s+/g, "-");
   c.typeEs = TYPE_ES[c.type] || c.type;
   c.typeColor = TYPE_COLOR[c.type] || "#a39d8a";
+  c.apiSetId = (c.set === "CRZ" && c.num.startsWith("GG")) ? "swsh12pt5gg" : SET_TO_PTCGIO[c.set];
+  c.apiNumber = /^[0-9]+$/.test(c.num) ? String(parseInt(c.num, 10)) : c.num;
+  c.priceUrl = "https://www.google.com/search?q=" + encodeURIComponent(`site:coolstuffinc.com "${c.name}" "${c.full}"`);
 });
+
+async function fetchLivePrice(card){
+  const cacheKey = card.apiSetId + "-" + card.apiNumber;
+  const cached = priceCache[cacheKey];
+  const now = Date.now();
+  if(cached && (now - cached.t) < 12 * 60 * 60 * 1000){
+    return cached; // cache de 12hs para no golpear la API de más
+  }
+  if(!card.apiSetId){
+    return { error: "sin-mapeo" };
+  }
+  const q = `set.id:${card.apiSetId} number:${card.apiNumber}`;
+  const url = "https://api.pokemontcg.io/v2/cards?q=" + encodeURIComponent(q);
+
+  let res, lastStatus;
+  const delays = [0, 1200, 2500]; // reintentos con espera creciente ante rate-limit
+  for(let attempt = 0; attempt < delays.length; attempt++){
+    if(delays[attempt]) await new Promise(r => setTimeout(r, delays[attempt]));
+    res = await fetch(url);
+    lastStatus = res.status;
+    if(res.ok) break;
+    if(res.status !== 429 && !(res.status >= 500)) break; // error real, no tiene sentido reintentar
+  }
+  if(!res.ok) throw new Error("HTTP " + lastStatus);
+
+  const data = await res.json();
+  const found = (data.data && data.data[0]) || null;
+  if(!found || !found.tcgplayer || !found.tcgplayer.prices){
+    const result = { error: "sin-precio" };
+    priceCache[cacheKey] = Object.assign({t: now}, result);
+    localStorage.setItem(PRICE_CACHE_KEY, JSON.stringify(priceCache));
+    return result;
+  }
+  const prices = found.tcgplayer.prices;
+  // Preferimos la versión normal (no holo). Si la carta solo existe en holo, usamos esa.
+  const variant = prices.normal ? "normal"
+    : prices.reverseHolofoil ? "reverseHolofoil"
+    : prices.holofoil ? "holofoil"
+    : prices["1stEditionNormal"] ? "1stEditionNormal"
+    : Object.keys(prices)[0];
+  if(!variant){
+    const result = { error: "sin-precio" };
+    priceCache[cacheKey] = Object.assign({t: now}, result);
+    localStorage.setItem(PRICE_CACHE_KEY, JSON.stringify(priceCache));
+    return result;
+  }
+  const p = prices[variant];
+  const market = p.market ?? p.mid ?? p.low;
+  const result = {
+    price: market,
+    variant,
+    isHoloOnly: variant !== "normal",
+    url: found.tcgplayer.url,
+    t: now
+  };
+  priceCache[cacheKey] = result;
+  localStorage.setItem(PRICE_CACHE_KEY, JSON.stringify(priceCache));
+  return result;
+}
 
 // ============================================================
 // FIREBASE — pegá acá tu firebaseConfig (Project settings > General
@@ -887,6 +997,7 @@ let owned = {};
 let currentFilter = "all";
 let currentArtist = "all";
 let currentType = "all";
+let currentRarity = "all";
 let currentSort = "default";
 let currentAsc = true;
 let currentSearch = "";
@@ -984,6 +1095,7 @@ function getFiltered(){
   }
   if(currentArtist !== "all"){ list = list.filter(c => c.artist === currentArtist); }
   if(currentType !== "all"){ list = list.filter(c => c.type === currentType); }
+  if(currentRarity !== "all"){ list = list.filter(c => c.rarity === currentRarity); }
   if(currentFilter === "owned"){ list = list.filter(c => owned[c.id]); }
   if(currentFilter === "missing"){ list = list.filter(c => !owned[c.id]); }
 
@@ -1000,6 +1112,43 @@ function getFiltered(){
   }
   if(!currentAsc){ list.reverse(); }
   return list;
+}
+
+async function handlePriceClick(btn, card){
+  if(btn.disabled) return;
+
+  // Si ya resolvimos esta carta (fetch previo o cache), el click solo abre el link.
+  if(btn.dataset.resolvedUrl){
+    window.open(btn.dataset.resolvedUrl, "_blank");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Buscando…";
+  btn.classList.remove("price-error");
+  try{
+    const result = await fetchLivePrice(card);
+    if(result.error === "sin-mapeo" || result.error === "sin-precio"){
+      btn.textContent = "Sin precio — buscar en tienda";
+      btn.classList.add("price-error");
+      btn.dataset.resolvedUrl = card.priceUrl;
+      btn.disabled = false;
+      return;
+    }
+    const priceStr = "$" + Number(result.price).toFixed(2);
+    const note = result.isHoloOnly ? " (solo holo)" : "";
+    btn.textContent = `${priceStr} USD${note} · TCGplayer`;
+    btn.title = "Precio de mercado en TCGplayer" + (result.t ? " · actualizado " + new Date(result.t).toLocaleString() : "");
+    btn.dataset.resolvedUrl = result.url || card.priceUrl;
+    btn.disabled = false;
+  }catch(e){
+    console.error(e);
+    btn.textContent = "Error — tocar para reintentar";
+    btn.classList.add("price-error");
+    // OJO: a propósito NO seteamos resolvedUrl acá, para que el próximo click
+    // vuelva a intentar el fetch en vez de mandar directo al buscador.
+    btn.disabled = false;
+  }
 }
 
 function render(){
@@ -1032,6 +1181,7 @@ function render(){
         </div>
         <div class="artist-tag">🖌 ${c.artist}</div>
         <div class="rarity ${c.rarityClass}">${c.rarity}</div>
+        <button class="price-link" type="button">💲 Ver precio</button>
       </div>
     `;
     const stamp = el.querySelector(".stamp");
@@ -1039,6 +1189,8 @@ function render(){
     stamp.addEventListener("keydown", (e) => {
       if(e.key === "Enter" || e.key === " "){ e.preventDefault(); toggle(c.id); }
     });
+    const priceBtn = el.querySelector(".price-link");
+    priceBtn.addEventListener("click", () => handlePriceClick(priceBtn, c));
     grid.appendChild(el);
   });
 }
@@ -1066,6 +1218,14 @@ document.querySelectorAll("#typeRow button").forEach(btn => {
     document.querySelectorAll("#typeRow button").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     currentType = btn.dataset.type;
+    render();
+  });
+});
+document.querySelectorAll("#rarityRow button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#rarityRow button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentRarity = btn.dataset.rarity;
     render();
   });
 });
