@@ -426,13 +426,14 @@
     <div class="tally-row">
       <div class="tally-box">
         <div class="tally-num" id="ownedCount">0</div>
-        <div class="tally-label">tenés / <span id="totalCount">289</span> catalogadas</div>
+        <div class="tally-label">tenés / <span id="totalCount">293</span> catalogadas</div>
       </div>
     </div>
 
     <div class="notice">
-      <b>Catálogo completo:</b> 289 cartas en total — 207 de <b>Yuka Morii</b>,
-      42 de <b>Sachiko Adachi</b>, 36 de <b>Asako Ito</b> y 4 de <b>Hizuki Misono</b>.
+      <b>Catálogo completo:</b> 293 cartas en total — 210 de <b>Yuka Morii</b>,
+      42 de <b>Sachiko Adachi</b>, 37 de <b>Asako Ito</b> y 4 de <b>Hizuki Misono</b>.
+      Última actualización: noviembre 2026 (incluye 30th Celebration).
     </div>
 
     <div class="sync-panel" id="syncPanel">
@@ -453,9 +454,9 @@
     <input type="search" id="searchBox" placeholder="Buscar por nombre o set (ej. Rowlet, LOR)…" />
     <select id="artistSelect">
       <option value="all">Artista: todas</option>
-      <option value="Yuka Morii">Yuka Morii (207)</option>
+      <option value="Yuka Morii">Yuka Morii (210)</option>
       <option value="Sachiko Adachi">Sachiko Adachi (42)</option>
-      <option value="Asako Ito">Asako Ito (36)</option>
+      <option value="Asako Ito">Asako Ito (37)</option>
       <option value="Hizuki Misono">Hizuki Misono (4)</option>
     </select>
     <select id="sortSelect">
@@ -487,6 +488,7 @@
     <button data-type="Fairy">✨ Hada</button>
     <button data-type="Colorless">⭐ Incoloro</button>
     <button data-type="Dragon">🐉 Dragón</button>
+    <button data-type="Trainer">🎒 Entrenador</button>
   </div>
 
   <div class="type-row" id="rarityRow">
@@ -502,7 +504,7 @@
   <div class="grid" id="grid"></div>
 
   <footer>
-    <span>289 cartas · 4 artistas · datos vía Limitless TCG y PkmnCards</span>
+    <span>293 cartas · 4 artistas · datos vía Limitless TCG y PkmnCards</span>
     <span>Hecho para uso personal de colección</span>
   </footer>
 
@@ -510,6 +512,9 @@
 
 <script>
 const CARDS = [
+  {set:"30C", full:"30th Celebration", num:"126", type:"Trainer", year:2026, name:"Poké Pad", rarity:"Common"},
+  {set:"30C", full:"30th Celebration", num:"127", type:"Trainer", year:2026, name:"Switch", rarity:"Common"},
+  {set:"30C", full:"30th Celebration", num:"128", type:"Trainer", year:2026, name:"Ultra Ball", rarity:"Common"},
   {set:"PBL", full:"Pitch Black", num:"042", type:"Fighting", year:2026, name:"Mankey", rarity:"Common"},
   {set:"PFL", full:"Phantasmal Flames", num:"009", type:"Grass", year:2025, name:"Nymble", rarity:"Common"},
   {set:"MEG", full:"Mega Evolution", num:"052", type:"Lightning", year:2025, name:"Helioptile", rarity:"Common"},
@@ -777,6 +782,7 @@ const CARDS = [
   {artist:"Sachiko Adachi", set:"TRR", full:"Team Rocket Returns", num:"80", type:"Lightning", year:2004, name:"Voltorb", rarity:"Common", img:"https://images.pokemontcg.io/ex7/80_hires.png"},
 
   // ==================== ASAKO ITO ====================
+  {artist:"Asako Ito", set:"30C", full:"30th Celebration", num:"027", type:"Lightning", year:2026, name:"Pikachu", rarity:"Special"},
   {artist:"Asako Ito", set:"PBL", full:"Pitch Black", num:"015", type:"Water", year:2026, name:"Wailmer", rarity:"Common"},
   {artist:"Asako Ito", set:"BLK", full:"Black Bolt", num:"151", type:"Colorless", year:2025, name:"Audino", rarity:"Special"},
   {artist:"Asako Ito", set:"JTG", full:"Journey Together", num:"120", type:"Colorless", year:2025, name:"Dunsparce", rarity:"Common"},
@@ -824,12 +830,12 @@ const CARDS = [
 const TYPE_ES = {
   Grass:"Planta", Fire:"Fuego", Water:"Agua", Lightning:"Rayo", Psychic:"Psíquica",
   Fighting:"Lucha", Darkness:"Oscura", Metal:"Metálica", Fairy:"Hada",
-  Colorless:"Incoloro", Dragon:"Dragón"
+  Colorless:"Incoloro", Dragon:"Dragón", Trainer:"Entrenador"
 };
 const TYPE_COLOR = {
   Grass:"#4f9153", Fire:"#e0692f", Water:"#3f80c4", Lightning:"#d8ae2e", Psychic:"#a1569a",
   Fighting:"#a8622c", Darkness:"#4a4560", Metal:"#8a93a0", Fairy:"#e08fb0",
-  Colorless:"#a39d8a", Dragon:"#6f6ad6"
+  Colorless:"#a39d8a", Dragon:"#6f6ad6", Trainer:"#7a6a55"
 };
 
 // Mapea el código de set que usamos (LimitlessTCG) al id de set que usa
@@ -843,6 +849,7 @@ const SET_TO_PTCGIO = {
   HL:"ex5", HS:"hgss1", JTG:"sv9", LM:"ex12", LOR:"swsh11", LOT:"sm8", LTR:"bw11",
   MEG:"me1", MEW:"sv3pt5", MT:"dp2", N2:"neo2", N3:"neo3", N4:"neo4", OBF:"sv3",
   P2:"pop2", P3:"pop3", P8:"pop8", PAL:"sv2", PAR:"sv4", PBL:"me5", PFL:"me2",
+  "30C":"me55",
   PGO:"pgo", PK:"ex16", PL:"pl1", PRC:"xy5", RCL:"swsh2", RG:"ex6", ROS:"xy6",
   SCR:"sv7", SF:"dp7", SIT:"swsh12", SK:"ecard3", SMP:"smp", SSH:"swsh1", SSP:"sv8",
   STS:"xy11", SUM:"sm1", SV:"pl3", SVI:"sv1", TEF:"sv5", TEU:"sm9", TM:"hgss4",
